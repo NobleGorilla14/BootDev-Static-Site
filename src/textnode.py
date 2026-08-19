@@ -1,4 +1,6 @@
+import re
 from enum import Enum
+from leafnode import LeafNode
 
 class TextType(Enum):
     plain_text = 'text'
@@ -24,6 +26,56 @@ class TextNode:
             and self.url == other.url
         )
 
-    
-    def __repr__(self) -> str:
-        return f"TextNode({self.text}, {self.text_type}, {self.url})"
+def text_node_to_html_node(text_node: TextNode) -> LeafNode:
+    textstyle = text_node.text_type
+        
+    if textstyle == TextType.plain_text:
+        return LeafNode(None, text_node.text)
+    if textstyle == TextType.bold_text:
+        return LeafNode("b", text_node.text)
+    if textstyle == TextType.italic_text:
+        return LeafNode("i", text_node.text)
+    if textstyle == TextType.code_text:
+        return LeafNode("code", text_node.text)
+    if textstyle == TextType.link:
+        if text_node.url is None:
+            raise ValueError("No URL/invalid URL")
+        return LeafNode("a", text_node.text, {"href": text_node.url})
+    if textstyle == TextType.image:
+        if text_node.url is None:
+            raise ValueError("No URL/invalid URL")
+        return LeafNode("img","",{"src": text_node.url, "alt": text_node.text})
+    raise ValueError(f"{textstyle} is not a valid option!")
+
+
+def split_nodes_delimiter(old_nodes: list[TextNode], delimiter: str, text_type: TextType) -> list[TextNode]:
+    new_nodes = []
+    for node in old_nodes:
+        if node.text_type != text_type.plain_text:
+            new_nodes.append(node)
+            continue
+        split_nodes = []
+        delmatch = node.text.split(delimiter)
+        if len(delmatch) % 2 == 0:
+            raise ValueError(f'A matching closing {delimiter} was not found')
+        for s in range(len(delmatch)):
+            if delmatch[s] == "":
+                continue
+            if s % 2 == 0:
+                split_nodes.append(TextNode(delmatch[s], TextType.plain_text))
+            else:
+                split_nodes.append(TextNode(delmatch[s], text_type))
+        new_nodes.extend(split_nodes)
+    return new_nodes
+
+
+def extract_markdown_images(text: str) -> list[tuple[str,str]]:
+    matches = re.findall(r"!\[([^\[\]]*)\]\(([^\(\)]*)\)",text)
+    return matches
+
+def extract_markdown_links(text: str) -> list[tuple[str,str]]:
+    matches = re.findall(r"(?<!!)\[([^\[\]]*)\]\(([^\(\)]*)\)",text)
+    return matches
+
+def __repr__(self) -> str:
+    return f"TextNode({self.text}, {self.text_type}, {self.url})"
