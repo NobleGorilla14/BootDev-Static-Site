@@ -1,0 +1,8 @@
+Logfile created at 2026-09-04_16-57-46./public exists
+./public deleted and recreated
+./public did not exist
+./public has be created
+ * Copied ./static/images -> ./public/images./public/images did not exist
+./public/images has be created
+ * Copied ./static/images/tolkien.png -> ./public/images/tolkien.png * Copied ./static/index.css -> ./public/index.cssFiles copied to ./public
+From ./static
